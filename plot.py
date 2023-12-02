@@ -4,7 +4,7 @@ import matplotlib.dates as mdates
 from mpl_finance import candlestick_ohlc  # pip install mpl_finance
 import numpy as np
 
-print("Hello,,,, World!!!!!")
+print("Hello,  World!")
 # Загрузка данных из файла
 history_data = 'https://drive.google.com/uc?id=1_eYsMYv8L_rrFrNnVN39ugbSVvC12Mm5'
 data = pd.read_csv(history_data, header=None, sep=',', names=['date', 'time', 'open', 'high', 'low', 'close', 'volume'])
