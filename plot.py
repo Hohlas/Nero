@@ -1,7 +1,7 @@
 
 # %%
 import pandas as pd  # pip install pandas
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt # pip install matplotlib
 import matplotlib.dates as mdates
 from mpl_finance import candlestick_ohlc  # pip install mpl_finance
 import numpy as np
@@ -21,6 +21,8 @@ def PLOT(plot_data):
     ax.set_ylabel('Price')
     ax.set_title('High-Low Bar Chart')
     plt.show(block=True)
-
+# %%
 history_data='EURUSD60.csv' # 'https://drive.google.com/uc?id=1_eYsMYv8L_rrFrNnVN39ugbSVvC12Mm5'
 PLOT(history_data)
+aaa=567
+# %%
