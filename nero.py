@@ -4,6 +4,7 @@ import pandas as pd # pip install pandas
 import tensorflow as tf # pip install tensorflow
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from sklearn.preprocessing import MinMaxScaler # pip install scikit-learn
 from sklearn.model_selection import train_test_split
 import tensorflow.python.platform.build_info as build_info
@@ -46,6 +47,10 @@ X = np.reshape(X, (X.shape[0], X.shape[1], 2))
 X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
 print('make x_train and y_train')
 # %% Создание модели LSTM
+# Создание обратных вызовов 
+early_stopping = EarlyStopping(monitor='val_loss', patience=3) # для ранней остановки: останавливает обучение, когда val_loss не улучшается в течение трех эпох (patience=3) 
+model_checkpoint = ModelCheckpoint('model_{epoch}.h5', save_freq='epoch') # для сохранения модели после каждой эпохи в файл model_{epoch}.h5
+
 with gpu_strategy.scope():
     model = Sequential()
     model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 2)))
@@ -54,8 +59,8 @@ with gpu_strategy.scope():
 
     # Компиляция и обучение модели
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=10, batch_size=32)
-
+    model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=100, batch_size=32, callbacks=[early_stopping, model_checkpoint]) # Обучение модели
+    model.save('result_model.h5') # Сохранение модели
 # %% Прогнозирование следующего бара
 last_100_data_high = scaler_high.transform(data['high'][-100:].values.reshape(-1, 1))
 last_100_data_low = scaler_low.transform(data['low'][-100:].values.reshape(-1, 1))
