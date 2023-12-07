@@ -45,7 +45,7 @@ X = np.reshape(X, (X.shape[0], X.shape[1], 2))
 
 # Разделение данных на обучающую и валидационную выборки
 X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
-print('make x_train and y_train')
+print('X_train, X_val, y_train, y_val:  are ready')
 # %% Создание модели LSTM
 # Создание обратных вызовов 
 early_stopping = EarlyStopping(monitor='val_loss', patience=3) # для ранней остановки: останавливает обучение, когда val_loss не улучшается в течение трех эпох (patience=3) 
@@ -61,6 +61,7 @@ with gpu_strategy.scope():
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=100, batch_size=32, callbacks=[early_stopping, model_checkpoint]) # Обучение модели
     model.save('result_model.h5') # Сохранение модели
+print('Learning complete')    
 # %% Прогнозирование следующего бара
 last_100_data_high = scaler_high.transform(data['high'][-100:].values.reshape(-1, 1))
 last_100_data_low = scaler_low.transform(data['low'][-100:].values.reshape(-1, 1))
