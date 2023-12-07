@@ -8,18 +8,14 @@ from sklearn.preprocessing import MinMaxScaler # pip install scikit-learn
 from sklearn.model_selection import train_test_split
 import requests
 from io import BytesIO
-# pip install -U tensorflow[and-cuda]
-# pip install nvidia-pyindex
-# pip install --upgrade nvidia-tensorrt
-# 
-# 
-# 
-print("Tensorflow ver-",tf.__version__," CUDA ver-")
+import tensorflow.python.platform.build_info as build_info
+
+print("Tensorflow ver-",tf.__version__," CUDA ver-",build_info.build_info['cuda_version'])
 # %% Подключение GPU
-if tf.test.is_gpu_available():
-    print("GPU is available")
-    devices = tf.config.list_physical_devices('GPU')
+devices = tf.config.list_physical_devices('GPU')
+if len(devices) > 0:
     tf.config.experimental.set_memory_growth(devices[0], True)
+    print('connect GPU ',len(devices))
 else:
     print("GPU not available")
 # %%
