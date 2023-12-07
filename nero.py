@@ -12,17 +12,20 @@ import tensorflow.python.platform.build_info as build_info
 
 print("Tensorflow ver-",tf.__version__," CUDA ver-",build_info.build_info['cuda_version'])
 # %% Подключение GPU
-devices = tf.config.list_physical_devices('GPU')
-if len(devices) > 0:
-    tf.config.experimental.set_memory_growth(devices[0], True)
-    print('connect GPU ',len(devices))
-else:
-    print("GPU not available")
+try:
+    devices = tf.config.list_physical_devices('GPU')
+    if len(devices) > 0:
+        print('Running on GPU ', devices)
+        tf.config.experimental.set_memory_growth(devices[0], True)
+    else:
+        raise BaseException('ERROR: GPU not available!')
+except ValueError:
+    raise BaseException('ERROR: Not connected to a GPU!')
 # %%
-tf.config.experimental_connect_to_cluster(tpu)
-tf.tpu.experimental.initialize_tpu_system(tpu)
-tpu_strategy = tf.distribute.TPUStrategy(tpu)
-
+# tf.config.experimental_connect_to_cluster(tpu)
+# tf.tpu.experimental.initialize_tpu_system(tpu)
+# tpu_strategy = tf.distribute.TPUStrategy(tpu)
+gpu_strategy = tf.distribute.OneDeviceStrategy(device="/gpu:0")
 # Загрузка данных
 history_data = 'EURUSD60.csv' # 'https://drive.google.com/uc?id=1_eYsMYv8L_rrFrNnVN39ugbSVvC12Mm5'
 data = pd.read_csv(history_data, header=None, sep=',', names=['date', 'time', 'open', 'high', 'low', 'close', 'volume'])
@@ -30,7 +33,7 @@ data = data[['high', 'low']]
 
 # Проверка на пустые строки
 data.dropna(inplace=True)
-
+print('read ',len(data),'lines in ',history_data)
 # %% Создание набора данных для обучения и валидации
 X = []
 y = []
@@ -47,9 +50,9 @@ X = np.reshape(X, (X.shape[0], X.shape[1], 2))
 
 # Разделение данных на обучающую и валидационную выборки
 X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
-
+print('make x_train and y_train')
 # %% Создание модели LSTM
-with tpu_strategy.scope():
+with gpu_strategy.scope():
     model = Sequential()
     model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 2)))
     model.add(LSTM(units=50))
