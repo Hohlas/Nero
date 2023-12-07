@@ -6,8 +6,6 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 from sklearn.preprocessing import MinMaxScaler # pip install scikit-learn
 from sklearn.model_selection import train_test_split
-import requests
-from io import BytesIO
 import tensorflow.python.platform.build_info as build_info
 
 print("Tensorflow ver-",tf.__version__," CUDA ver-",build_info.build_info['cuda_version'])
@@ -17,16 +15,12 @@ try:
     if len(devices) > 0:
         print('Running on GPU ', devices)
         tf.config.experimental.set_memory_growth(devices[0], True)
+        gpu_strategy = tf.distribute.OneDeviceStrategy(device="/gpu:0")
     else:
         raise BaseException('ERROR: GPU not available!')
 except ValueError:
     raise BaseException('ERROR: Not connected to a GPU!')
-# %%
-# tf.config.experimental_connect_to_cluster(tpu)
-# tf.tpu.experimental.initialize_tpu_system(tpu)
-# tpu_strategy = tf.distribute.TPUStrategy(tpu)
-gpu_strategy = tf.distribute.OneDeviceStrategy(device="/gpu:0")
-# Загрузка данных
+# %% Загрузка данных
 history_data = 'EURUSD60.csv' # 'https://drive.google.com/uc?id=1_eYsMYv8L_rrFrNnVN39ugbSVvC12Mm5'
 data = pd.read_csv(history_data, header=None, sep=',', names=['date', 'time', 'open', 'high', 'low', 'close', 'volume'])
 data = data[['high', 'low']]
