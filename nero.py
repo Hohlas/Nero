@@ -16,11 +16,12 @@ try:
     if len(devices) > 0:
         print('Running on GPU ', devices)
         tf.config.experimental.set_memory_growth(devices[0], True)
-        gpu_strategy = tf.distribute.OneDeviceStrategy(device="/gpu:0")
+        strategy = tf.distribute.OneDeviceStrategy(device="/gpu:0")
     else:
-        raise BaseException('ERROR: GPU not available!')
+        print('GPU not available, running on CPU')
+        strategy = tf.distribute.OneDeviceStrategy(device="/cpu:0")
 except ValueError:
-    raise BaseException('ERROR: Not connected to a GPU!')
+    raise BaseException('ERROR: Not connected to a device!')
 # %% Загрузка данных
 history_data = 'EURUSD60.csv' # 'https://drive.google.com/uc?id=1_eYsMYv8L_rrFrNnVN39ugbSVvC12Mm5'
 data = pd.read_csv(history_data, header=None, sep=',', names=['date', 'time', 'open', 'high', 'low', 'close', 'volume'])
@@ -51,7 +52,7 @@ print('X_train, X_val, y_train, y_val:  are ready')
 early_stopping = EarlyStopping(monitor='val_loss', patience=3) # для ранней остановки: останавливает обучение, когда val_loss не улучшается в течение трех эпох (patience=3) 
 model_checkpoint = ModelCheckpoint('model_{epoch}.h5', save_freq='epoch') # для сохранения модели после каждой эпохи в файл model_{epoch}.h5
 
-with gpu_strategy.scope():
+with strategy.scope():
     model = Sequential()
     model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 2)))
     model.add(LSTM(units=50))
@@ -60,9 +61,9 @@ with gpu_strategy.scope():
     # Компиляция и обучение модели
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=100, batch_size=32, callbacks=[early_stopping, model_checkpoint]) # Обучение модели
-    model.save('result_model.h5') # Сохранение модели
+    model.save('result_model.h5') # Сохранение последней модели (необязательно, т.к. сохраняются какждую эпоху)
 print('Learning complete')    
-# %% Прогнозирование следующего бара
+# %% Прогнозирование следующего бара и
 last_100_data_high = scaler_high.transform(data['high'][-100:].values.reshape(-1, 1))
 last_100_data_low = scaler_low.transform(data['low'][-100:].values.reshape(-1, 1))
 last_100_data = np.hstack((last_100_data_high, last_100_data_low))
@@ -71,3 +72,4 @@ predicted_direction = 'up' if predicted_price > 0.5 else 'down'
 print(f'Предсказанное направление для следующего бара - {predicted_direction}.')
 
 # %%
+# создать файл setup.py или pyproject.toml 
