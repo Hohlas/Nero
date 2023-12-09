@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd # pip install pandas
 import tensorflow as tf # pip install tensorflow
 from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import load_model
 from tensorflow.keras.layers import LSTM, Dense
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from sklearn.preprocessing import MinMaxScaler # pip install scikit-learn
@@ -64,6 +65,7 @@ with strategy.scope():
     model.save('result_model.h5') # Сохранение последней модели (необязательно, т.к. сохраняются какждую эпоху)
 print('Learning complete')    
 # %% Прогнозирование следующего бара и
+model = load_model('result_model.h5') # загрузка модели с лучшими результатами
 last_100_data_high = scaler_high.transform(data['high'][-100:].values.reshape(-1, 1))
 last_100_data_low = scaler_low.transform(data['low'][-100:].values.reshape(-1, 1))
 last_100_data = np.hstack((last_100_data_high, last_100_data_low))
