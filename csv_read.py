@@ -26,7 +26,7 @@ def sort_data(filename):
             print("Отлично, пустых ячеек не найдено.")
     return sorted_data
 
-sorted_data = sort_data('Nero_5.csv') # Nero_XAUUSD60.csv
+sorted_data = sort_data('Nero_XAUUSD60.csv') # Nero_XAUUSD60.csv    Nero_5.csv
 
 # %% нормализация
 from sklearn.preprocessing import MinMaxScaler
@@ -50,16 +50,4 @@ for row in splited_data:
             item[index] = (float(item[index]) - min_val) / (max_val - min_val) if max_val > min_val else 0.5
 df = pd.DataFrame(splited_data) # Создаем объект DataFrame из массива данных
 df.to_csv('normalized.csv', index=False) # Сохраняем DataFrame в файл normalized.csv            
-# %%
-for i in range(len(sorted_data)):
-    for j in range(len(sorted_data[i])):
-        # Проверяем, является ли элемент строкой, прежде чем разделять его
-        if isinstance(sorted_data[i][j], str):
-            fractal = np.array(sorted_data[i][j].split(':'))  
-            # Выберите столбцы для нормализации
-            cols_to_normalize = [1, 2, 4, 5, 9, 10]
-            # Нормализуем данные
-            fractal[cols_to_normalize] = MinMaxScaler().fit_transform(fractal[cols_to_normalize].reshape(-1, 1))
-            splited_data[i][j] = fractal.tolist()  # Преобразуем массив NumPy обратно в список
-
-data = [np.array(row) for row in splited_data]  # Преобразуем каждую строку списка в массив NumPy
+# %% old code
