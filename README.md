@@ -47,16 +47,21 @@ impulse(float) – импульс цены (скорость разворота)
 ```
 
 Преобразуем ‘sorted_data’ в ‘splited_data’:
-splited_data = sorted_data.copy()
-for i in range(len(sorted_data)):
-    for j in range(len(sorted_data[i])):
-           splited_data[i][j] = np.array(splited_data [i][j].split(':'))  
+```python
+for i in range(len(input_data)):
+    for j in range(1, len(input_data[i])): # пропускаем первый столбец со временем
+        input_data[i][j] = np.array(input_data[i][j].split(':'))
+```  
+           
 Переменная ‘splited_data’ представляет собой список списков, и имеет следующий вид:
+```python
 time[0] fractal[0,0] fractal[0,1] … fractal[0,n]
 time[1] fractal[1,0] fractal[1,1] … fractal[1,n]
 ……
 time[k] fractal[k,0] fractal[k,1] … fractal[k,n]
+```
 В первом столбце содержится время ‘time’. Следующие столбцы представляют собой списки ‘fractal’ из 11 значений:
+```python
 fractal=[
 shift(int)
 price(float)
@@ -68,8 +73,11 @@ break(char)
 reverse(char)
 power(float)
 count(char)
+minute(ushort)
+atr(float)
 impulse(float)
 ]
+```
 В списке ‘splited_data’ в пределах каждой строки среди списков fractal0..fractaln нужно нормализовать значения переменной shift к диапазону [0..1], значение price нормализовать к диапазону [0..1]. 
 Аналогично нормализовать break, reverse, power, count, impulse.
 Переменные front и back имеют общую единицу измерения и общие пределы (max_val, min_val), поэтому их необходимо нормализовать вместе к общему диапазону [0..1]. 
