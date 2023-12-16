@@ -14,7 +14,6 @@ time[0] ; fractal[0,0] ; fractal[0,1]; … ; fractal[0,n]
 time[1] ; fractal[1,0] ; fractal[1,1]; … ; fractal[1,n]
 time[k] ; fractal[k,0] ; fractal[k,1]; … ; fractal[k,n]
 ```
-
 Каждая ячейка ‘fractal[i,j]’ содержит список параметров фрактала, с разделителем ‘:’.  Структура данного списка следующая.
 
 ```bash
