@@ -38,13 +38,13 @@ for i in range(len(input_data)):
         input_data[i][j] = np.array(input_data[i][j].split(':'))
 # %% нормализация
 for row in input_data:
-    for index in [0, 1, 6, 7, 8, 9, 10]:  # индексы для нормализации
+    for index in [0, 1, 6, 7, 8, 9, 10, 11, 12]:  # индексы для нормализации
         values = [float(item[index]) for item in row[1:]]  # извлекаем значения для нормализации
-        min_val, max_val = min(values), max(values)  # находим минимальное и максимальное значения
+        min_val, max_val = min(values), max(values) # минимальное и максимальное значения
         # выполняем нормализацию
         for item in row[1:]:
             item[index] = (float(item[index]) - min_val) / (max_val - min_val) if max_val > min_val else 0.5
-        if index == 1: # сохраняем минимальное и максимальное значения для индекса 1
+        if index == 1: # минимальное и максимальное значения для индекса 1 (цена)
             min_max_values = [min_val, max_val - min_val]
     # Нормализация данных с индексами 3 и 4 вместе
     values_3 = [float(item[3]) for item in row[1:]]
