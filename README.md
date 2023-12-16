@@ -80,6 +80,7 @@ count(char)
 minute(ushort)
 atr(float)
 impulse(float)
+time(dtime)
 ]
 ```
 
