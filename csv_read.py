@@ -26,36 +26,40 @@ def read_data(filename):
                 print(cell)
         else:
             print("OK: no empty cells in file ",filename)
-    return data
+    
 # %% преобразование из текста с разделителямми ':' в списки 
-def txt_2_list(data):
+
     for i in range(len(data)):
         for j in range(1, len(data[i])): # пропускаем первый столбец со временем
             data[i][j] = np.array(data[i][j].split(':')).astype(float) # преобразование из текста в списки
     #keys = ["date"] + ["fr" + str(i) for i in range(1, len(data[0]))]
     #dict_data = [dict(zip(keys, sublist)) for sublist in data]
-    return data
+    
 #check = read_data('Nero_XAUUSD60.csv') # Nero_XAUUSD60.csv    Nero_5.csv
 #check = txt_2_list(check)
 # %% проверка каждого фрактала "не станет ли он в будущем первым уровнем" и запись статуса в доп. столбец. 
-def find_strong_levels(data):
+
     for row in data: # в каждой строке в данных 
         row.insert(1, [0, 0]) # вставляем после 'даты' новый список status[0, 0] чтобы записывать туда статус первого уровня
     # time[0] status[0] fractal[0][0] fractal[0][1] ... fractal[0][n]
     # time[1] status[1] fractal[1][0] fractal[1][1] ... fractal[1][n]     
-    first_levels=np.zeros(len(data),dtype=int)
+    first_levels_counter=np.zeros(len(data),dtype=int)
     for i in range(len(data)): # каждую строку
         for j in range(i + 1, len(data)): # сверяем со следующей и ниже
             for k in range(2, len(data[j])): # начиная со второго индекса (fractal[j][0])
+                # поиск ближайшего первого уровня в будущем
+                if data[j][k][5] > 0 and data[i][1][1] ==0: # в будущей истории найден первый уровень, и ни один уровень еще не сохранен
+                    data[i][1][1] =  data[j][k][1] # сохраняем значение ближайшего в будущем первого уровня
+                # проверка, будет ли текущий фрактал в будущем "первым уровнем"
                 if data[i][2][13] == data[j][k][13] and data[j][k][5] > 0: # время терущего фрактала совпало со временем фрактала из будущего, и тот со статусом "первый"
-                    data[i][1][0] = 1 # записываем статус новому фракталу
-                    data[i][1][1] = data[j][k][13] #
-                    first_levels[i]=1
+                    data[i][1][0] = 1 # говорит о том, что в будущем этот фрактал будет "первым уровнем"
+                    
+                    first_levels_counter[i]=1 # счеткик количества найденных первых уровней
                     break
-    print('find ',sum(first_levels)," first levels")                
-    return data
+    print('find ',sum(first_levels_counter)," first levels")                 
+    
 # %% нормализация всех данных к диапазону 0..1
-def normalize(data):     
+  
     for row in data:
         for index in [0, 1, 6, 7, 8, 9, 10, 11, 12]:  # индексы для нормализации
             values = [float(item[index]) for item in row[2:]]  # извлекаем значения для нормализации
@@ -78,9 +82,6 @@ def normalize(data):
     return data   
  
 check = read_data('Nero_XAUUSD60.csv') # Nero_XAUUSD60.csv    Nero_5.csv
-check = txt_2_list(check)
-check = find_strong_levels(check)
-check = normalize(check)
           
 # %% save to csv
 df = pd.DataFrame(check) # Создаем объект DataFrame из массива данных
