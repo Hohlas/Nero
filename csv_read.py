@@ -42,7 +42,8 @@ def read_data(filename):
 # ...
 # time[m] predictor[m] restore[m] fractal[m][0] fractal[m][1] ... fractal[m][n]  
  
-# проверка каждого фрактала "не станет ли он в будущем первым уровнем" и запись статуса в доп. столбец.       
+# проверка каждого фрактала "не станет ли он в будущем ключевым уровнем" и поиск "ближайшего ключевого уровня". 
+# predictor['статус фрактала в будущем', 'значение ближайшего ключевогоуровня']               
     first_levels_counter=np.zeros(len(data),dtype=int)
     for i in range(len(data)): # каждую строку
         for j in range(i + 1, len(data)): # сверяем со следующей и ниже
@@ -57,8 +58,8 @@ def read_data(filename):
                     break
     print('find ',sum(first_levels_counter)," first levels")                 
     
-# нормализация всех данных к диапазону 0..1
-  
+# нормализация всех данных к диапазону 0..1 и сохранение параметров нормализации цены в массив
+# restore[min_val, max_val - min_val] для последующего восстановления значения цены 
     for row in data:
         for index in [0, 1, 6, 7, 8, 9, 10, 11, 12]:  # индексы для нормализации
             values = [float(item[index]) for item in row[3:]]  # извлекаем значения для нормализации
