@@ -37,41 +37,43 @@ def read_data(filename):
         row.insert(1, [0, 0]) # вставляем новый столбец predictor[0,0] чтобы записывать туда статус "ключевого" уровня
         row.insert(1, [0, 0])  # Добавляем новый столбец restore[0,0] для min_max_values
 # после преобразований получили список списков 'data'
-
-# data = [data[0], data[1], ... , data[m]]                                                (m - кол-во фракталов в истории)
-# =================================================================================        
-#            0       1          2          3            4       ...    n+3              (n - кол-во фракталов в строке)
-# data[i]=[[time] [restore] [predictor] [fractal[0]] [fractal[1]] ... [fractal[n]]] 
+# ================================================================================= 
+# data = [data[0], data[1], ... , data[m]]                                                          (m - кол-во фракталов в истории)            
+#            0        1          2          3           4
+# data[i]=[[time] [restore] [predictor] [fractal_0] [fractal_1] ... 99:[fractal_n]]    (n - кол-во фракталов в строке)
 # =================================================================================
 
 # [restore]=[min , max-min] - данные для восстановления цены после нормализации
 # [predictor]=['статус фрактала в будущем' , 'ближайший в будущем ключевой уровень']
-# [fractal[]]=[shift, price, dir, front, back, status, break, rev, pwr, cnt, day_minutes, atr, impulse, time]       
+#              0     1    2    3    4     5      6    7   8   9     10       11     12    13
+# [fractal]=[shift price dir front back status break rev pwr cnt day_minutes atr impulse time]       
               
     first_levels_counter=np.zeros(len(data),dtype=int)
-    for i in range(len(data)): # перебираем каждую строку
+    for i in range(len(data)): # перебираем каждую строку (список) списка 'data'
         # проверка каждого фрактала "не станет ли он в будущем ключевым уровнем" и поиск "ближайшего ключевого уровня".         
         for j in range(i + 1, len(data)): # сверяем со следующими ниже строками
-            for k in range(3, len(data[j])): # начиная со второго индекса (fractal[j][0])
+            for k in range(3, len(data[j])): # начиная со индекса [3] пошли фракталы (3:fractal_0) 
                 # поиск ближайшего "ключевого" уровня в будущем
-                if data[j][k][5] > 0 and data[i][2][1] ==0: # в будущей истории найден ключевой уровень, и ни один уровень еще не сохранен
-                    data[i][2][1] =  data[j][k][1] # сохраняем значение ближайшего в будущем "ключевого" уровня
+                if data[j][k][5] > 0 and data[i][2][1] ==0: # первый попавшийся ключевой уровень в будущей истории  
+                    data[i][2][1] =  data[j][k][1] # сохраняем цену ближайшего в будущем "ключевого" уровня
                 # проверка, будет ли текущий фрактал в будущем "ключевым уровнем"
                 if data[i][3][13] == data[j][k][13] and data[j][k][5] > 0: # время терущего фрактала совпало со временем фрактала из будущего, и тот со статусом "ключевой"
                     data[i][2][0] = 1 # говорит о том, что в будущем этот фрактал будет "ключевым уровнем"
                     first_levels_counter[i]=1 # счеткик количества найденных ключевых уровней
                     break
-        # нормализация             
+        # нормализация к диапазону 0..1 и сохранение коэффициентов нормализации цены в массив restore[min_val, max_val - min_val]
         for index in [0, 1, 6, 7, 8, 9, 10, 11, 12]:  # индексы для нормализации
-            values = [float(item[index]) for item in data[i][3:]]  # в строке 'i' извлекаем значения [index] начиная со списка[3] (это fractal[]) 
+            values = [float(item[index]) for item in data[i][3:]]  # в строке 'i' извлекаем значения [index] начиная со списка[3] (это списки fractal) 
             min_val, max_val = min(values), max(values) # мин и макс значения во всей строке
             # выполняем нормализацию
             for item in data[i][3:]: # по всей строке 'i' начиная со списка[3]
                 item[index] = (float(item[index]) - min_val) / (max_val - min_val) if max_val > min_val else 0.5 # нормализуем значения [index]
-            if index == 1: # в индекс[1] записана цена, нужно сохранить коэффициенты нормализации (min, max-min) для последующего восстановления
-                data[i][1] = [min_val, max_val - min_val]  # Добавляем их в строку после столбца с временем
+            if index == 1: # в индекс[1] записана цена, нужно сохранить коэффициенты нормализации (min, max-min) для последующего ее восстановления
+                data[i][1] = [min_val, max_val - min_val]  # Добавляем их в список [restore] после столбца с временем
                 data[i][2][1] = (data[i][2][1] - min_val) / (max_val - min_val) if max_val > min_val else 0.5 # нормализуем к тому же диапазону значение ближайшего в будущем "ключевого" уровня
-        # Нормализация данных с индексами 3 и 4 (front и back) вместе
+                if data[i][2][1]<0 or data[i][2][1]>1: 
+                    print('warning, StrongLevel[',data[i][0],']=',data[i][2][1],' out of range[0..1]')
+        # Нормализация данных с индексами 3 и 4 (front и back) к общему диапазону
         values_3 = [float(item[3]) for item in data[i][3:]]
         values_4 = [float(item[4]) for item in data[i][3:]]
         min_val = min(min(values_3), min(values_4))
@@ -79,40 +81,11 @@ def read_data(filename):
         for item in data[i][3:]:
             item[3] = (float(item[3]) - min_val) / (max_val - min_val) if max_val > min_val else 0.5
             item[4] = (float(item[4]) - min_val) / (max_val - min_val) if max_val > min_val else 0.5            
-                    
-    
     print('find ',sum(first_levels_counter)," first levels")                 
-    
-# нормализация всех данных к диапазону 0..1 и сохранение параметров нормализации цены в массив
-# restore[min_val, max_val - min_val] для последующего восстановления значения цены 
-    '''
-    for row in data:
-        for index in [0, 1, 6, 7, 8, 9, 10, 11, 12]:  # индексы для нормализации
-            values = [float(item[index]) for item in row[3:]]  # извлекаем значения для нормализации
-            min_val, max_val = min(values), max(values) # минимальное и максимальное значения
-            # выполняем нормализацию
-            for item in row[3:]:
-                item[index] = (float(item[index]) - min_val) / (max_val - min_val) if max_val > min_val else 0.5
-            if index == 1: # минимальное и максимальное значения для индекса 1 (цена)
-                row[1] = [min_val, max_val - min_val]  # Добавляем минимальное и максимальное значения в data после столбца с временем
-        # Нормализация данных с индексами 3 и 4 вместе
-        values_3 = [float(item[3]) for item in row[3:]]
-        values_4 = [float(item[4]) for item in row[3:]]
-        min_val = min(min(values_3), min(values_4))
-        max_val = max(max(values_3), max(values_4))
-        for item in row[3:]:
-            item[3] = (float(item[3]) - min_val) / (max_val - min_val) if max_val > min_val else 0.5
-            item[4] = (float(item[4]) - min_val) / (max_val - min_val) if max_val > min_val else 0.5
-    '''
     print('OK: data normalized')
     return data   
  
-check = read_data('Nero_XAUUSD60.csv') # Nero_XAUUSD60.csv    Nero_5.csv
- # получили список списков
-# time[0] predictor[0] restore[0] fractal[0][0] fractal[0][1] ... fractal[0][n]
-# time[1] predictor[1] restore[1] fractal[1][0] fractal[1][1] ... fractal[1][n]  
-# ...
-# time[m] predictor[m] restore[m] fractal[m][0] fractal[m][1] ... fractal[m][n]           
+check = read_data('Nero_XAUUSD60.csv') # Nero_XAUUSD60.csv    Nero_5.csv     
 # %% save to csv
 with open('normalized.csv', 'w', newline='') as f:  # Открываем файл для записи
     writer = csv.writer(f, delimiter=';')  # Создаем объект writer для записи в CSV-файл
