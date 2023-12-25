@@ -89,7 +89,7 @@ def read_data(filename):
     print('OK: data normalized')
     return data   
  
-check = read_data('Nero_5.csv') # Nero_XAUUSD60.csv    Nero_5.csv     
+check = read_data('Nero_XAUUSD60.csv') # Nero_XAUUSD60.csv    Nero_5.csv     
 # %% save to csv для проверок
 with open('normalized.csv', 'w', newline='') as f:  # Открываем файл для записи
     writer = csv.writer(f, delimiter=';')  # Создаем объект writer для записи в CSV-файл
